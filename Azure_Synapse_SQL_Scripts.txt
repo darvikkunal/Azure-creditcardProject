@@ -1,0 +1,81 @@
+-- SQL on CreditCard
+
+SELECT *
+FROM OPENROWSET(
+    BULK 'https://ccrkunalprojectstorages.dfs.core.windows.net/creditcardriskdata/silver/',
+    FORMAT = 'PARQUET'
+    ) AS result;
+
+-- applicant_risk_profiles
+
+CREATE VIEW dbo.applicant_risk_profiles AS
+SELECT
+    result.SK_ID_CURR,
+    TRY_CAST(result.AMT_INCOME_TOTAL AS FLOAT) AS income,
+    TRY_CAST(result.AMT_CREDIT AS FLOAT) AS credit,
+    TRY_CAST(result.AMT_ANNUITY AS FLOAT) AS annuity,
+    TRY_CAST(result.INCOME_CREDIT_RATIO AS FLOAT) AS income_credit_ratio,
+    TRY_CAST(result.DAYS_EMPLOYED AS FLOAT) / NULLIF(TRY_CAST(result.DAYS_BIRTH AS FLOAT), 0) AS employment_ratio
+FROM OPENROWSET(
+    BULK 'https://ccrkunalprojectstorages.dfs.core.windows.net/creditcardriskdata/silver/',
+    FORMAT = 'PARQUET'
+) AS result
+WHERE result.SK_ID_CURR IS NOT NULL;
+
+
+SELECT * from dbo.applicant_risk_profiles;
+
+-- feature_insights_summary
+
+CREATE VIEW dbo.feature_insights_summary AS
+SELECT
+    result.NAME_INCOME_TYPE,
+    COUNT(*) AS applicant_count,
+    AVG(TRY_CAST(result.AMT_INCOME_TOTAL AS FLOAT)) AS avg_income,
+    AVG(TRY_CAST(result.AMT_CREDIT AS FLOAT)) AS avg_credit,
+    AVG(TRY_CAST(result.INCOME_CREDIT_RATIO AS FLOAT)) AS avg_income_credit_ratio,
+    AVG(TRY_CAST(result.TARGET AS FLOAT)) AS default_rate
+FROM OPENROWSET(
+    BULK 'https://ccrkunalprojectstorages.dfs.core.windows.net/creditcardriskdata/silver/',
+    FORMAT = 'PARQUET'
+) AS result
+GROUP BY result.NAME_INCOME_TYPE;
+
+select * from dbo.feature_insights_summary;
+
+-- SQL to gold Layer
+
+-- CREATE MASTER KEY ENCRYPTION BY PASSWORD = 'QWERT@#1234';
+
+-- CREATE DATABASE SCOPED CREDENTIAL kunaladmin WITH IDENTITY = 'Managed Identity';
+
+-- select * from sys.database_credentials;
+
+CREATE EXTERNAL FILE FORMAT extfileformat WITH (
+    FORMAT_TYPE = PARQUET,
+    DATA_COMPRESSION = 'org.apache.hadoop.io.compress.SnappyCodec'
+);
+
+CREATE EXTERNAL DATA SOURCE goldlayer1 WITH (
+    LOCATION = 'https://ccrkunalprojectstorages.dfs.core.windows.net/creditcardriskdata/gold/',
+    CREDENTIAL = kunaladmin
+);
+
+CREATE EXTERNAL TABLE gold.finaltable1 WITH (
+        LOCATION = 'Serving1',
+        DATA_SOURCE = goldlayer,
+        FILE_FORMAT = extfileformat
+) AS
+SELECT * from dbo.applicant_risk_profiles;
+
+
+
+CREATE EXTERNAL TABLE gold.finaltable2 WITH (
+    LOCATION = 'Serving2',
+    DATA_SOURCE = goldlayer,
+    FILE_FORMAT = extfileformat
+) AS
+select * from dbo.feature_insights_summary;
+
+
+
