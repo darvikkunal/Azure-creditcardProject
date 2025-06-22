@@ -14,7 +14,7 @@ The project follows a modern data warehouse architecture using several Azure ser
 
 Here is a high-level overview of the pipeline:
 
-![Architecture Diagram](../Screenshots/architecture_diagram.png)
+![Architecture Diagram](Screenshots/architecture_diagram.png)
 
 ## Dataset
 
@@ -36,16 +36,16 @@ Data Source - https://www.kaggle.com/c/home-credit-default-risk/data
 The data is organized into three layers in Azure Data Lake Storage:
 
 -   **Bronze Layer:** Contains the raw, unaltered data ingested from source systems.
-    ![Bronze Layer](../Screenshots/bronze_layer.png)
+    ![Bronze Layer](Screenshots/bronze_layer.png)
 
 -   **Silver Layer:** Contains cleansed, and transformed data. Data from various sources is joined here. This layer is often used by data scientists for exploration.
-    ![Silver Layer](../Screenshots/silver_layer.png)
+    ![Silver Layer](Screenshots/silver_layer.png)
 
 -   **Gold Layer:** Contains aggregated and curated data, ready for consumption by analytics and reporting tools. This is the serving layer.
-    ![Gold Layer](../Screenshots/gold_layer.png)
+    ![Gold Layer](Screenshots/gold_layer.png)
 
 Here is the overall folder structure in ADLS:
-![ADLS Folder Structure](../Screenshots/ADLS_folder%20structure.png)
+![ADLS Folder Structure](Screenshots/ADLS_folder%20structure.png)
 
 ## Implementation Details
 
@@ -53,13 +53,13 @@ Here is the overall folder structure in ADLS:
 
 Azure Data Factory is used to orchestrate the entire ELT/ETL process. It ingests the raw CSV files and data from postgres database into the Bronze layer of the Data Lake. Then, it triggers the Databricks notebook for data transformation.
 
-![ADF Overview](../Screenshots/ccrkunalproject-adf-overview.png)
+![ADF Overview](Screenshots/ccrkunalproject-adf-overview.png)
 
 ### Data Transformation
 
 Azure Databricks is used to perform the heavy lifting of data transformation. The `CreditCard_Transformation_DatabricksCodes.ipynb` notebook reads data from the Bronze layer, performs cleaning, transformation, feature engineering, and joins the different datasets. The transformed data is then stored in the Silver layer in Parquet format. Further aggregations are performed and stored in the Gold layer.
 
-![Databricks Workspace](../Screenshots/ccrkunalproject-databricks.png)
+![Databricks Workspace](Screenshots/ccrkunalproject-databricks.png)
 
 ### Data Serving with Azure Synapse Analytics
 
@@ -109,18 +109,18 @@ GROUP BY result.NAME_INCOME_TYPE;
 
 The data from the gold layer is then exposed as external tables in Synapse.
 
-![Synapse Workspace](../Screenshots/creditcard-synapse-workspace-overview.png)
+![Synapse Workspace](Screenshots/creditcard-synapse-workspace-overview.png)
 
 ## Azure Resources
 
 Here are some screenshots of the Azure resources used in this project.
 
 -   **Storage Account:**
-    ![Storage Account Overview](../Screenshots/ccrkunalprojectstorages_overview.png)
-    ![Storage Containers](../Screenshots/ADLS_storage_containers.png)
+    ![Storage Account Overview](Screenshots/ccrkunalprojectstorages_overview.png)
+    ![Storage Containers](Screenshots/ADLS_storage_containers.png)
 
 -   **ADLS Lifecycle Management:**
-    ![ADLS Lifecycle](../Screenshots/ADLS_lifecycle_management_codeView.png) 
+    ![ADLS Lifecycle](Screenshots/ADLS_lifecycle_management_codeView.png) 
 
 - **Challenges Faced**
 
